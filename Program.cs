@@ -7,13 +7,14 @@ namespace BedSharp;
 
 class Program
 {
-    public void Main(string[] args)
+    public static void Main(string[] args)
     {
         int port = 19132;
         
         const long SERVER_ID = 123456;
+        const short MTU_SIZE = 1492;
         
-        string serverData = "MCPE;Serveur C# de Rieno;859;1.20.30;0;20;123456;BedSharp;Survival;";
+        string serverData = "MCPE;Serveur C# de Rieno;859;1.21.120;0;20;123456;BedSharp;Survival;";
         
         byte[] MAGIC = 
         {
@@ -59,9 +60,52 @@ class Program
                         Console.WriteLine($"Sent the packet to {clientEndPoint.Address}");
                     }
                 }
-                else
+                else if (datagram.Length > 0 && datagram[0] == 0x05)
                 {
                     
+                    
+                    using (MemoryStream stream = new MemoryStream())
+                    using (BinaryWriter writer = new BinaryWriter(stream))
+                    {
+                        writer.Write((byte)0x06);
+                        writer.Write(MAGIC);
+                        writer.Write(IPAddress.HostToNetworkOrder(SERVER_ID));
+                        writer.Write((byte)0x00);
+                        writer.Write(IPAddress.HostToNetworkOrder(MTU_SIZE));
+                        
+                        byte[] response = stream.ToArray();
+                        listener.Send(response, response.Length, clientEndPoint);
+
+                        Console.WriteLine($"Connection step one reply completed, sent to {clientEndPoint.Address}");
+                        
+                    }
+                }
+                else if (datagram.Length > 0 && datagram[0] == 0x07)
+                {
+                    Console.WriteLine($"Connection step two received from {clientEndPoint.Address}");
+                    
+                    using (MemoryStream stream = new MemoryStream())
+                    using (BinaryWriter writer = new BinaryWriter(stream))
+                    {
+                        writer.Write((byte)0x08);
+                        writer.Write(MAGIC);
+                        writer.Write(IPAddress.HostToNetworkOrder(SERVER_ID));
+                        stream.Write(clientEndPoint.Address.GetAddressBytes());
+                        writer.Write(IPAddress.HostToNetworkOrder((short)clientEndPoint.Port));
+                        
+                        writer.Write(IPAddress.HostToNetworkOrder(MTU_SIZE));
+                        
+                        writer.Write((byte)0x00);
+                        
+                        byte[] response = stream.ToArray();
+                        listener.Send(response, response.Length, clientEndPoint);
+
+                        Console.WriteLine($"Connection step two reply completed, sent to {clientEndPoint.Address}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"[INFO] Paquet inconnu reçu (ID: 0x{datagram[0]:X2})");
                 }
 
             }

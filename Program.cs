@@ -1,4 +1,4 @@
-﻿
+﻿using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -10,11 +10,12 @@ class Program
     public static void Main(string[] args)
     {
         int port = 19132;
-        
-        const long SERVER_ID = 123456;
+        Random rnd = new Random();
+        ulong SERVER_ID = ((ulong)rnd.Next() << 32) | (uint)rnd.Next();
         const short MTU_SIZE = 1492;
         
-        string serverData = "MCPE;Serveur C# de Rieno;859;1.21.120;0;20;123456;BedSharp;Survival;";
+        Console.WriteLine($"Server ID: {SERVER_ID}");
+        string serverData = $"MCPE;Serveur C# de Rieno;859;1.21.120;0;20;{SERVER_ID};BedSharp;Survival;1;19132;19133;";
         
         byte[] MAGIC = 
         {
@@ -34,91 +35,48 @@ class Program
             {
                 byte[] datagram = listener.Receive(ref clientEndPoint);
 
-                Console.WriteLine($"Received the packet from {clientEndPoint.Address} !");
+                Console.WriteLine($"\n========================================");
+                Console.WriteLine($"Received {datagram.Length} bytes from {clientEndPoint.Address}:{clientEndPoint.Port}");
+                Console.WriteLine($"Packet ID: 0x{datagram[0]:X2}");
+                Console.WriteLine($"Full packet: {BitConverter.ToString(datagram)}");
+                Console.WriteLine($"========================================");
 
-                if (datagram.Length > 0 && datagram[0] == 0x01)
+                if (datagram[0] == 0x01 && datagram.Length > 0)
                 {
-                    Console.WriteLine($"Ping received: {datagram.Length} bytes from {clientEndPoint.Address}");
-                    
-                    long clientTimestamp = BitConverter.ToInt64(datagram, 1);
-                    
-                    using (MemoryStream stream = new MemoryStream())
-                    using (BinaryWriter writer = new BinaryWriter(stream))
+                    using (MemoryStream ms = new MemoryStream(datagram))
+                    using (BinaryWriter bw = new BinaryWriter(ms))
+                    using (BinaryReader br = new BinaryReader(ms))
                     {
-                        writer.Write((byte)0x1c);
-                        writer.Write(clientTimestamp);
-                        writer.Write(SERVER_ID);
-                        writer.Write(MAGIC);
+                        br.ReadByte(); // Skip the packet ID
                         
-                        byte[] serverDataBytes = Encoding.UTF8.GetBytes(serverData);
-                        writer.Write((short)serverDataBytes.Length);
-                        writer.Write(serverDataBytes);
+                        //Read the timestamp
+                        long clientTime = BinaryPrimitives.ReadInt64BigEndian(br.ReadBytes(8));
                         
-                        byte[] response = stream.ToArray();
-                        listener.Send(response, response.Length, clientEndPoint);
+                        //Read and verify the magic
+                        byte[] receivedMagic = br.ReadBytes(16);
+                        bool magicValid = receivedMagic.SequenceEqual(MAGIC);
+
+                        Console.WriteLine($"Client Time: {clientTime}");
+                        //Packet ID
+                        bw.Write((byte)0x1c);
                         
-                        Console.WriteLine($"Sent the packet to {clientEndPoint.Address}");
+                        //TimeStamp of the client
+                        byte[] timeBytes = BitConverter.GetBytes(clientTime);
+
                     }
                 }
-                else if (datagram.Length > 0 && datagram[0] == 0x05)
-                {
-                    
-                    
-                    using (MemoryStream stream = new MemoryStream())
-                    using (BinaryWriter writer = new BinaryWriter(stream))
-                    {
-                        writer.Write((byte)0x06);
-                        writer.Write(MAGIC);
-                        writer.Write(IPAddress.HostToNetworkOrder(SERVER_ID));
-                        writer.Write((byte)0x00);
-                        writer.Write(IPAddress.HostToNetworkOrder(MTU_SIZE));
-                        
-                        byte[] response = stream.ToArray();
-                        listener.Send(response, response.Length, clientEndPoint);
-
-                        Console.WriteLine($"Connection step one reply completed, sent to {clientEndPoint.Address}");
-                        
-                    }
-                }
-                else if (datagram.Length > 0 && datagram[0] == 0x07)
-                {
-                    Console.WriteLine($"Connection step two received from {clientEndPoint.Address}");
-                    
-                    using (MemoryStream stream = new MemoryStream())
-                    using (BinaryWriter writer = new BinaryWriter(stream))
-                    {
-                        writer.Write((byte)0x08);
-                        writer.Write(MAGIC);
-                        writer.Write(IPAddress.HostToNetworkOrder(SERVER_ID));
-                        stream.Write(clientEndPoint.Address.GetAddressBytes());
-                        writer.Write(IPAddress.HostToNetworkOrder((short)clientEndPoint.Port));
-                        
-                        writer.Write(IPAddress.HostToNetworkOrder(MTU_SIZE));
-                        
-                        writer.Write((byte)0x00);
-                        
-                        byte[] response = stream.ToArray();
-                        listener.Send(response, response.Length, clientEndPoint);
-
-                        Console.WriteLine($"Connection step two reply completed, sent to {clientEndPoint.Address}");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"[INFO] Paquet inconnu reçu (ID: 0x{datagram[0]:X2})");
-                }
-
+                   
             }
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            Console.WriteLine($"Error: {e.Message}");
+            Console.WriteLine(e.StackTrace);
         }
         finally
         {
             listener.Close();
         }
-
-
     }
+    
 }

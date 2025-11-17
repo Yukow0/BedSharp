@@ -1,6 +1,6 @@
 ﻿namespace BedSharp;
 
-// Informations générales sur le protocole Bedrock
+// General information about the Bedrock protocol.
 public static class BedrockProtocolInfo
 {
     /* Actual Minecraft:BE protocol version */

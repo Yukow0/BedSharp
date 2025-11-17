@@ -1,4 +1,4 @@
-﻿namespace BedSharp;
+﻿namespace BedSharp.Protocols.RakNet;
 
 public enum MessageIdentifiers : byte
 {

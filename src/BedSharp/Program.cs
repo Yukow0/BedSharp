@@ -2,8 +2,9 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using BedSharp.Protocols.RakNet;
 
-namespace BedSharp;
+namespace BedSharp.BedSharp;
 
 class Program
 {
@@ -22,8 +23,7 @@ class Program
         0x00, 0xFF, 0xFF, 0x00, 0xFE, 0xFE, 0xFE, 0xFE, 
         0xFD, 0xFD, 0xFD, 0xFD, 0x12, 0x34, 0x56, 0x78 
         };
-
-        int magic;
+        
 
         
 

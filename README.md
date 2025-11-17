@@ -31,14 +31,20 @@ Requirements
 Quickstart
 ----------
 1. Clone:
+   ```BASH
    git clone https://github.com/Yukow0/BedSharp.git
    cd BedSharp
+   ```
 
 2. Build:
+   ```BASH
    dotnet build
+   ```
 
 3. Run the server project:
+    ```BASH
    dotnet run --project BedSharp
+   ```
 
 Notes:
 - This will run the prototype server; expect limited behaviour: incoming connections may reach the join handshake but then disconnect because higher-level features are not implemented.

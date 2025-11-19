@@ -3,6 +3,7 @@
 [![Build](https://img.shields.io/badge/build-unknown-lightgrey)](https://github.com/Yukow0/BedSharp/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-9.0-blueviolet)](https://dotnet.microsoft.com/download/dotnet/9.0)
+[![Qodana](https://github.com/Yukow0/BedSharp/actions/workflows/qodana_code_quality.yml/badge.svg?branch=dev)](https://github.com/Yukow0/BedSharp/actions/workflows/qodana_code_quality.yml)
 
 BedSharp is an experimental, native C# server project for Minecraft Bedrock Edition. This repository contains an early-stage prototype focused on the networking layer: a first-pass RakNet implementation and the beginning of Bedrock protocol handling. If you are looking for a production-ready server, this project is not there yet — it is intended for learning, experimentation, and contribution.
 

@@ -5,94 +5,112 @@
 [![.NET](https://img.shields.io/badge/.NET-9.0-blueviolet)](https://dotnet.microsoft.com/download/dotnet/9.0)
 [![Qodana](https://github.com/Yukow0/BedSharp/actions/workflows/qodana_code_quality.yml/badge.svg?branch=dev)](https://github.com/Yukow0/BedSharp/actions/workflows/qodana_code_quality.yml)
 
-BedSharp is an experimental, native C# server project for Minecraft Bedrock Edition. This repository contains an early-stage prototype focused on the networking layer: a first-pass RakNet implementation and the beginning of Bedrock protocol handling. If you are looking for a production-ready server, this project is not there yet — it is intended for learning, experimentation, and contribution.
+**BedSharp** is an experimental, native C# Minecraft Bedrock Edition server prototype. It currently focuses on low-level networking: early RakNet implementation and initial Bedrock protocol handling. This is *not* production-ready and serves primarily as a learning and experimentation project.
 
-Status
-------
-- Project state: very early prototype / proof-of-concept
-- Implemented (current):
-    - Basic RakNet connection handling (initial packet framing and parsing)
-    - Early Bedrock protocol packet structures and partial handling
-    - Initial client join/login handshake flow (proof that a client can begin the join process)
-- Not implemented / TODO:
-    - World storage, chunk streaming, entities, physics, or gameplay logic
-    - Complete RakNet or Bedrock protocol coverage (many packet types missing)
-    - Authentication persistence, player management, or plugin system
-    - Hardened networking, security protections, and production readiness
+## Status
 
-Why this project exists
------------------------
-The goal is to build a clean, C#-first Bedrock server core that can eventually be extended. At this stage the focus is on correctly implementing and testing the low-level networking and protocol bits so future features can be layered on top.
+* **Project state:** Very early prototype / proof-of-concept
+* **Implemented:**
 
-Requirements
-------------
-- .NET 9.0 SDK
-- A Minecraft Bedrock client for testing (recommended: same major version as your protocol definitions)
+    * Basic RakNet connection handling (initial framing and parsing)
+    * Early Bedrock protocol packet structures + partial handlers
+    * Client join/login handshake (client can begin the join process)
+* **Not implemented:**
 
-Quickstart
-----------
-1. Clone:
-   git clone https://github.com/Yukow0/BedSharp.git
-   cd BedSharp
+    * World storage, chunk streaming, entities, physics, gameplay logic
+    * Full RakNet coverage (ordering, reliability not fully implemented)
+    * Full Bedrock packet coverage
+    * Player auth persistence, player manager, plugin system
+    * Hardened networking or production security
 
-2. Build:
-   dotnet build
+## Why this project exists
 
-3. Run the server project:
-   dotnet run --project BedSharp
+The goal is to build a clean, C#-first Bedrock server core. The current focus is correctness and clarity in packet handling so higher-level features can be added later.
 
-Notes:
-- This will run the prototype server; expect limited behaviour: incoming connections may reach the join handshake but then disconnect because higher-level features are not implemented.
-- Check the console output for RakNet/Bedrock debug logs (where present) to see packet-level activity.
+## Requirements
 
-Repository layout (high-level)
-------------------------------
-- src/
-    - BedSharp (server entry / small host used for testing)
-    - Protocols/
-        - RakNet — initial RakNet framing / parsing code
-        - Bedrock — packet definitions and partial handlers
-- tests/ — protocol unit tests (if present)
-- docs/ — notes and experiments (if present)
+* .NET **9.0** SDK
+* Minecraft Bedrock client (recommended: matching your protocol version)
 
-Development notes
------------------
-- Protocol work aims to be explicit and well-tested. Prefer small, focused unit tests for packet parsing/serialization.
-- Keep public APIs minimal during the protocol stabilization phase; refactor for ergonomics after protocol coverage is stable.
-- Use defensive parsing and logging to help diagnose mismatched client versions or malformed packets.
+## Quickstart
 
-How you can help
-----------------
-- Try the prototype and open issues describing failures, logs, and client versions.
-- Contribute tests for packet parsing/serialization.
-- Implement missing packet handlers or extend the RakNet reliability layer.
-- Help define a small, stable "join" test-suite that reproduces a full client login sequence.
+### Clone
 
-Roadmap (short, prioritized)
----------------------------
-1. Complete RakNet reliability/ordering handling for the packets used during client join.
-2. Add remaining Bedrock packets needed to complete a full join and basic keepalive.
-3. Implement a minimal in-memory player/session manager so connected clients can be tracked.
+```sh
+git clone https://github.com/Yukow0/BedSharp.git
+cd BedSharp
+```
+
+### Build
+
+```sh
+dotnet build
+```
+
+### Run
+
+```sh
+dotnet run --project BedSharp
+```
+
+**Notes:**
+
+* This runs the prototype server. Expect minimal behaviour.
+* The join process may start but disconnect due to missing features.
+* Debug RakNet/Bedrock logs (when enabled) will show packet activity.
+
+## Repository layout (high-level)
+
+```
+/src
+  /BedSharp         → Server entry point / test host
+  /Protocols
+      /RakNet       → Framing, parsing, reliability base
+      /Bedrock      → Packet definitions + partial handlers
+/tests              → Protocol tests (if present)
+/docs               → Notes, experiments
+```
+
+## Development notes
+
+* Protocol code should be explicit and well-tested.
+* Prefer small, focused unit tests for parsing/serialization.
+* Keep public APIs minimal until protocols stabilize.
+* Use defensive parsing and logging to help debug version mismatches.
+
+## How you can help
+
+* Try the prototype and file issues (with logs + client version).
+* Add parsing/serialization tests.
+* Implement missing packet handlers.
+* Improve RakNet reliability/ordering.
+* Help design a minimal test-suite for full client login.
+
+## Roadmap (short-term)
+
+1. Finish RakNet reliability/ordering for join packets.
+2. Add remaining Bedrock packets required for complete join.
+3. Implement minimal in-memory player/session manager.
 4. Add simple configuration and logging.
-5. Begin work on world data streaming (chunks) and basic entity stubs.
+5. Begin chunk streaming + basic entity stubs.
 
-Security & Support
-------------------
-- This project is experimental. Do not expose it to untrusted networks or use for production.
-- If you find a security issue, open a private report or create a GitHub issue with "security" in the title and sufficient reproduction details.
+## Security & Support
 
-Contributing
-------------
-Contributions are welcome. Suggested workflow:
+* **Do not expose to untrusted networks.**
+* This is experimental and missing protections.
+* For security issues: open a private report or GitHub issue marked **security**.
+
+## Contributing
+
 1. Fork the repository.
-2. Create a branch for your work: git checkout -b feature/short-description
-3. Add tests for protocol behaviour where possible.
-4. Open a pull request with a clear description and relevant logs/tests.
+2. Create a branch: `git checkout -b feature/short-description`
+3. Add protocol tests when possible.
+4. Open a pull request with a clear description + logs or tests.
 
-License
--------
-MIT — see LICENSE file.
+## License
 
-Contact
--------
-Maintainer: Yukow0 — https://github.com/Yukow0
+MIT — see `LICENSE`.
+
+## Contact
+
+Maintainer: **Yukow0** — [https://github.com/Yukow0](https://github.com/Yukow0)

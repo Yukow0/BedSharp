@@ -1,4 +1,4 @@
-﻿namespace BedSharp;
+﻿namespace BedSharp.Protocols.Bedrock;
 
 // General information about the Bedrock protocol.
 public static class BedrockProtocolInfo

@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Folder Include="docs\" />
+    <Folder Include="src\Protocols\Bedrock\Packets\" />
   </ItemGroup>
 
 </Project>

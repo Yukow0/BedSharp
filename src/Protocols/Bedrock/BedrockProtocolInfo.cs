@@ -7,7 +7,7 @@ public static class BedrockProtocolInfo
     public const int CurrentProtocol = 859;
 
     /* Current Minecraft:BE version reported by the server. */
-    public const string MinecraftVersion = "v1.21.120";
+    public const string MinecraftVersion = "v1.21.124";
 
     /* Version number sent to clients in ping responses. */
     public const string MinecraftVersionNetwork = "1.21.120";

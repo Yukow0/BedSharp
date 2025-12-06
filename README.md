@@ -67,6 +67,7 @@ dotnet run --project BedSharp
   /Protocols
       /RakNet       → Framing, parsing, reliability base
       /Bedrock      → Packet definitions + partial handlers
+   /Utils           → Some functions to help the writing
 /tests              → Protocol tests (if present)
 /docs               → Notes, experiments
 ```

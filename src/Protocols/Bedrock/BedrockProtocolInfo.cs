@@ -4,13 +4,13 @@
 public static class BedrockProtocolInfo
 {
     /* Actual Minecraft:BE protocol version */
-    public const int CurrentProtocol = 859;
+    public const int CurrentProtocol = 975;
 
     /* Current Minecraft:BE version reported by the server. */
-    public const string MinecraftVersion = "v1.21.124";
+    public const string MinecraftVersion = "v26.21";
 
     /* Version number sent to clients in ping responses. */
-    public const string MinecraftVersionNetwork = "1.21.120";
+    public const string MinecraftVersionNetwork = "1.26.21";
 }
 
 public enum BedrockPacket : int

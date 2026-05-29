@@ -1,7 +1,6 @@
-﻿namespace BedSharp.Protocols.RakNet;
-
-public enum MessageIdentifiers : byte
+﻿public enum MessageIdentifiers : byte
 {
+    // RESERVED TYPES
     IdConnectedPing = 0x00,
     IdUnconnectedPing = 0x01,
     IdUnconnectedPingOpenConnections = 0x02,
@@ -19,6 +18,7 @@ public enum MessageIdentifiers : byte
     IdSndReceiptAcked = 0x0E,
     IdSndReceiptLoss = 0x0F,
 
+    // USER TYPES
     IdConnectionRequestAccepted = 0x10,
     IdConnectionAttemptFailed = 0x11,
     IdAlreadyConnected = 0x12,
@@ -35,29 +35,28 @@ public enum MessageIdentifiers : byte
     IdAdvertiseSystem = 0x1D,
     IdDownloadProgress = 0x1E,
 
+    // PLUGINS & INTERNAL SYSTEM TYPES
     IdRemoteDisconnectionNotification = 0x1F,
     IdRemoteConnectionLost = 0x20,
     IdRemoteNewIncomingConnection = 0x21,
-
     IdFileListTransferHeader = 0x22,
     IdFileListTransferFile = 0x23,
     IdFileListReferencePushAck = 0x24,
-
     IdDdtDownloadRequest = 0x25,
-
     IdTransportString = 0x26,
-
     IdReplicaManagerConstruction = 0x27,
     IdReplicaManagerScopeChange = 0x28,
     IdReplicaManagerSerialize = 0x29,
     IdReplicaManagerDownloadStarted = 0x2A,
     IdReplicaManagerDownloadComplete = 0x2B,
 
+    // RAKVOICE
     IdRakvoiceOpenChannelRequest = 0x2C,
     IdRakvoiceOpenChannelReply = 0x2D,
     IdRakvoiceCloseChannel = 0x2E,
     IdRakvoiceData = 0x2F,
 
+    // AUTOPATCHER
     IdAutopatcherGetChangelistSinceDate = 0x30,
     IdAutopatcherCreationList = 0x31,
     IdAutopatcherDeletionList = 0x32,
@@ -69,11 +68,11 @@ public enum MessageIdentifiers : byte
     IdAutopatcherFinished = 0x38,
     IdAutopatcherRestartApplication = 0x39,
 
+    // NAT PUNCHTHROUGH
     IdNatPunchthroughRequest = 0x3A,
     IdNatConnectAtTime = 0x3B,
     IdNatGetMostRecentPort = 0x3C,
     IdNatClientReady = 0x3D,
-
     IdNatTargetNotConnected = 0x3E,
     IdNatTargetUnresponsive = 0x3F,
     IdNatConnectionToTargetLost = 0x40,
@@ -81,26 +80,23 @@ public enum MessageIdentifiers : byte
     IdNatPunchthroughFailed = 0x42,
     IdNatPunchthroughSucceeded = 0x43,
 
+    // READY EVENT & LOBBY
     IdReadyEventSet = 0x44,
     IdReadyEventUnset = 0x45,
     IdReadyEventAllSet = 0x46,
     IdReadyEventQuery = 0x47,
-
     IdLobbyGeneral = 0x48,
-
     IdRpcRemoteError = 0x49,
     IdRpcPlugin = 0x4A,
-
     IdFileListReferencePush = 0x4B,
     IdReadyEventForceAllSet = 0x4C,
-
     IdRoomsExecuteFunc = 0x4D,
     IdRoomsLogonStatus = 0x4E,
     IdRoomsHandleChange = 0x4F,
-
     IdLobby2SendMessage = 0x50,
     IdLobby2ServerError = 0x51,
 
+    // FULLY CONNECTED MESH 2
     IdFcm2NewHost = 0x52,
     IdFcm2RequestFcmguid = 0x53,
     IdFcm2RespondConnectionCount = 0x54,
@@ -112,29 +108,28 @@ public enum MessageIdentifiers : byte
     IdFcm2VerifiedJoinAccepted = 0x5A,
     IdFcm2VerifiedJoinRejected = 0x5B,
 
+    // PLUGINS suite
     IdUdpProxyGeneral = 0x5C,
-
     IdSqLite3Exec = 0x5D,
     IdSqLite3UnknownDb = 0x5E,
     IdSqlLiteLogger = 0x5F,
-
     IdNatTypeDetectionRequest = 0x60,
     IdNatTypeDetectionResult = 0x61,
 
+    // ROUTER 2 & TEAM BALANCER
     IdRouter2Internal = 0x62,
     IdRouter2ForwardingNoPath = 0x63,
     IdRouter2ForwardingEstablished = 0x64,
     IdRouter2Rerouted = 0x65,
-
     IdTeamBalancerInternal = 0x66,
     IdTeamBalancerRequestedTeamFull = 0x67,
     IdTeamBalancerRequestedTeamLocked = 0x68,
     IdTeamBalancerTeamRequestedCancelled = 0x69,
     IdTeamBalancerTeamAssigned = 0x6A,
-
     IdLightspeedIntegration = 0x6B,
     IdXboxLobby = 0x6C,
 
+    // TWO WAY AUTHENTICATION
     IdTwoWayAuthenticationIncomingChallengeSuccess = 0x6D,
     IdTwoWayAuthenticationOutgoingChallengeSuccess = 0x6E,
     IdTwoWayAuthenticationIncomingChallengeFailure = 0x6F,
@@ -142,6 +137,7 @@ public enum MessageIdentifiers : byte
     IdTwoWayAuthenticationOutgoingChallengeTimeout = 0x71,
     IdTwoWayAuthenticationNegotiation = 0x72,
 
+    // CLOUD & MISC
     IdCloudPostRequest = 0x73,
     IdCloudReleaseRequest = 0x74,
     IdCloudGetRequest = 0x75,
@@ -149,13 +145,13 @@ public enum MessageIdentifiers : byte
     IdCloudUnsubscribeRequest = 0x77,
     IdCloudServerToServerCommand = 0x78,
     IdCloudSubscriptionNotification = 0x79,
-
     IdLibVoice = 0x7A,
-
     IdRelayPlugin = 0x7B,
     IdNatRequestBoundAddresses = 0x7C,
     IdNatRespondBoundAddresses = 0x7D,
     IdFcm2UpdateUserContext = 0x7E,
+    
+    // RESERVED RANGE
     IdReserved3 = 0x7F,
     IdReserved4 = 0x80,
     IdReserved5 = 0x81,
@@ -163,6 +159,7 @@ public enum MessageIdentifiers : byte
     IdReserved7 = 0x83,
     IdReserved8 = 0x84,
     IdReserved9 = 0x85,
-
+    
+    // USER RANGE START
     IdUserPacketEnum = 0x86
 }

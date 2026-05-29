@@ -15,11 +15,11 @@ public class ServerInfo
     
     
     public const int ProtocolVersion = BedrockProtocolInfo.CurrentProtocol;
-    public const string MinecraftVersion = BedrockProtocolInfo.MinecraftVersion;
+    public const string MinecraftVersion = BedrockProtocolInfo.MinecraftVersionNetwork;
     
     
     public static string GetServerData(ulong serverId, string motd, int maxPlayers = 20)
     {
         return $"MCPE;{motd};{ProtocolVersion};{MinecraftVersion};0;{maxPlayers};{serverId};BedSharp;Survival;1;{DefaultPort};{DefaultPort + 1};";
-    }
+    }   
 }

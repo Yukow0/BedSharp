@@ -112,6 +112,13 @@ dotnet run --project BedSharp
 
 MIT — see `LICENSE`.
 
+## Thanks
+
+I want to thank a project and a website for simply existing. Without them, I wouldn't have been able to build this.
+
+* Thanks to the **PocketMine** project
+* Thanks to the **bedrock.dev** website
+
 ## Contact
 
 Maintainer: **Yukow0** — [https://github.com/Yukow0](https://github.com/Yukow0)

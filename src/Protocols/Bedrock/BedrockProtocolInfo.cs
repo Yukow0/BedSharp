@@ -13,7 +13,7 @@ public static class BedrockProtocolInfo
     public const string MinecraftVersionNetwork = "1.26.21";
 }
 
-public enum BedrockPacket : int
+public enum BedrockPacketId : int
 {
     LoginPacket = 0x01,
     PlayStatusPacket = 0x02,

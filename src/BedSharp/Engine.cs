@@ -43,6 +43,8 @@ public class Engine
             while (true)
             {
                 byte[] datagram = _listener.Receive(ref _clientEndPoint);
+                Console.WriteLine($"Received {datagram.Length} bytes from {_clientEndPoint}");
+                Console.WriteLine($"Datagram: {BitConverter.ToString(datagram)}");
                 
                
                 using (MemoryStream msRead = new MemoryStream(datagram))
@@ -50,6 +52,7 @@ public class Engine
                 {
                     if (datagram[0] == (byte)MessageIdentifiers.IdUnconnectedPing)
                     {
+                        Console.WriteLine("Ping received");
                         br.ReadByte(); 
                         
                         long clientTime = BinaryPrimitives.ReadInt64BigEndian(br.ReadBytes(8));
@@ -60,6 +63,7 @@ public class Engine
                     }
                     else if (datagram[0] == (byte)MessageIdentifiers.IdOpenConnectionRequest1)
                     {
+                        Console.WriteLine("OpenConnectionRequest1 received");
                         br.ReadByte();
 
                         byte[] responsePacket = OpenConnectionReply1.SendOpenConnection(_serverId);
@@ -78,7 +82,7 @@ public class Engine
                     }
 
                     if (datagram[0] >= 0x80 && datagram[0] <= 0x8F)
-                    {
+                    { 
                         byte frameSet = br.ReadByte();
                         msRead.Seek(3, SeekOrigin.Current);
                         byte reliabilityFlag =  br.ReadByte();

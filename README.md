@@ -12,7 +12,7 @@
 * **Project state:** Very early prototype / proof-of-concept
 * **Implemented:**
 
-    * Basic RakNet connection handling (initial framing and parsing)
+    * Raknet ALMOST complete.
     * Early Bedrock protocol packet structures + partial handlers
     * Client join/login handshake (client can begin the join process)
 * **Not implemented:**
@@ -114,10 +114,11 @@ MIT — see `LICENSE`.
 
 ## Thanks
 
-I want to thank a project and a website for simply existing. Without them, I wouldn't have been able to build this.
+I want to thank two projects and a website for simply existing. Without them, I wouldn't have been able to build this.
 
 * Thanks to the **PocketMine** project
 * Thanks to the **bedrock.dev** website
+* Thanks to the **CloudBurst** project
 
 ## Contact
 

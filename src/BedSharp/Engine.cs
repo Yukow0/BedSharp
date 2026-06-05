@@ -2,9 +2,13 @@
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using BedSharp.Protocols.Bedrock;
+using BedSharp.Protocols.Bedrock.Packets;
+using BedSharp.Protocols.Bedrock.Packets.PacketUtils;
 using BedSharp.Protocols.RakNet;
 using BedSharp.Protocols.RakNet.Packets;
 using BedSharp.Utils;
+using BedSharp.Utils.PacketsHandler;
 
 namespace BedSharp.BedSharp;
 
@@ -18,9 +22,10 @@ public class Engine
     private readonly Random _rnd = new Random();
     private readonly string _motd;
     private readonly int _maxPlayers;
+    private bool _compressionEnabled = false;
     private IPEndPoint _clientEndPoint;
-    
-    
+
+
     public Engine(int port, string motd, int maxPlayers)
     {
         _port = port;
@@ -43,38 +48,32 @@ public class Engine
             while (true)
             {
                 byte[] datagram = _listener.Receive(ref _clientEndPoint);
-                Console.WriteLine($"Received {datagram.Length} bytes from {_clientEndPoint}");
-                Console.WriteLine($"Datagram: {BitConverter.ToString(datagram)}");
-                
-               
+
+
                 using (MemoryStream msRead = new MemoryStream(datagram))
                 using (BinaryReader br = new BinaryReader(msRead))
                 {
                     if (datagram[0] == (byte)MessageIdentifiers.IdUnconnectedPing)
                     {
-                        Console.WriteLine("Ping received");
-                        br.ReadByte(); 
-                        
+                        br.ReadByte();
+
                         long clientTime = BinaryPrimitives.ReadInt64BigEndian(br.ReadBytes(8));
-                        
-                        byte[] responsePacket = PingPacket.SendPong(clientTime, _clientEndPoint, _serverId, _serverData);
+
+                        byte[] responsePacket =
+                            PingPacket.SendPong(clientTime, _clientEndPoint, _serverId, _serverData);
                         _listener.Send(responsePacket, responsePacket.Length, _clientEndPoint);
-                        
                     }
                     else if (datagram[0] == (byte)MessageIdentifiers.IdOpenConnectionRequest1)
                     {
-                        Console.WriteLine("OpenConnectionRequest1 received");
                         br.ReadByte();
 
                         byte[] responsePacket = OpenConnectionReply1.SendOpenConnection(_serverId);
                         _listener.Send(responsePacket, responsePacket.Length, _clientEndPoint);
-                        
-
                     }
                     else if (datagram[0] == (byte)MessageIdentifiers.IdOpenConnectionRequest2)
                     {
                         br.ReadByte();
-                        
+
 
                         byte[] responsePacket =
                             OpenConnectionReply2.SendOpenConnection(_serverId, _clientEndPoint);
@@ -82,78 +81,124 @@ public class Engine
                     }
 
                     if (datagram[0] >= 0x80 && datagram[0] <= 0x8F)
-                    { 
-                        byte frameSet = br.ReadByte();
+                    {
+                        br.ReadByte();
                         msRead.Seek(3, SeekOrigin.Current);
-                        byte reliabilityFlag =  br.ReadByte();
-                        int importantInfo = reliabilityFlag >> 5;
-                        int totalJump = 0;
-                        
-                        switch (importantInfo)
-                        {
-                            case 0:
-                                break;
-                            case 1:
-                                totalJump = 3;
-                                break;
-                            case 2:
-                                totalJump = 3;
-                                break;
-                            case 3:
-                                totalJump = 7;
-                                break;
-                            case 4:
-                                totalJump = 6;
-                                break;
-                        }
 
-                        if ((reliabilityFlag & 0x10) != 0)
+                        while (msRead.Position < datagram.Length)
                         {
-                            totalJump += 12;
-                        }
+                            byte reliabilityFlag = br.ReadByte();
 
-                        totalJump += 2;
+                            ushort lengthInBits =
+                                BinaryPrimitives.ReadUInt16BigEndian(datagram.AsSpan((int)msRead.Position, 2));
+                            msRead.Seek(2, SeekOrigin.Current);
+                            int lengthInBytes = (lengthInBits + 7) / 8;
 
-                        msRead.Seek(totalJump, SeekOrigin.Current);
+                            int importantInfo = reliabilityFlag >> 5;
+                            int totalJump = 0;
 
-                        
-                        byte innerPacketId = br.ReadByte();
-                        
-                        Console.Write(innerPacketId);
-                        if (innerPacketId == (byte)MessageIdentifiers.IdConnectionRequest)
-                        {
-                            long timestamp = (long)br.ReadUInt64();
-                            byte[] responsePacket = PacketEncapsulater.FrameSetPacketGenerate(
-                                ConnectionRequestAccepted.SendConnectionRequestAccepted(_clientEndPoint, timestamp), 1,
-                                0x40);
-                            _listener.Send(responsePacket, responsePacket.Length, _clientEndPoint);
-                        }
-                        if (innerPacketId == (byte)MessageIdentifiers.IdNewIncomingConnection)
-                        {
-                            byte serverAddrType = br.ReadByte();
-                            
-                            msRead.Seek(serverAddrType == 4 ? 6 : 28, SeekOrigin.Current);
-                            
-                            for (int i = 0; i < 10; i++)
+                            switch (importantInfo)
                             {
-                                byte clientAddrType = br.ReadByte();
-                                msRead.Seek(clientAddrType == 4 ? 6 : 28, SeekOrigin.Current);
+                                case 1:
+                                case 2:
+                                    totalJump = 3;
+                                    break;
+                                case 3:
+                                    totalJump = 7;
+                                    break;
+                                case 4:
+                                    totalJump = 6;
+                                    break;
                             }
 
-                            
-                            ulong clientSendTime = br.ReadUInt64();
-                            ulong serverSendTime = br.ReadUInt64();
-                            
-                        }
-                        else if (innerPacketId == (byte)MessageIdentifiers.IdConnectedPing)
-                        {
-                            UInt64 timestampClient = br.ReadUInt64();
+                            if ((reliabilityFlag & 0x10) != 0)
+                            {
+                                totalJump += 12;
+                            }
 
-                            byte[] responsePacket =
-                                PacketEncapsulater.FrameSetPacketGenerate(
+                            msRead.Seek(totalJump, SeekOrigin.Current);
+
+                            long frameEndPosition = msRead.Position + lengthInBytes;
+
+                            byte innerPacketId = br.ReadByte();
+
+                            if (innerPacketId == (byte)MessageIdentifiers.IdConnectionRequest)
+                            {
+                                long timestamp = (long)br.ReadUInt64();
+                                byte[] responsePacket = PacketEncapsulater.FrameSetPacketGenerate(
+                                    ConnectionRequestAccepted.SendConnectionRequestAccepted(_clientEndPoint, timestamp),
+                                    1, 0x40);
+                                _listener.Send(responsePacket, responsePacket.Length, _clientEndPoint);
+                            }
+                            else if (innerPacketId == (byte)MessageIdentifiers.IdNewIncomingConnection)
+                            {
+                                byte serverAddrType = br.ReadByte();
+                                msRead.Seek(serverAddrType == 4 ? 6 : 28, SeekOrigin.Current);
+
+                                for (int i = 0; i < 10; i++)
+                                {
+                                    byte clientAddrType = br.ReadByte();
+                                    msRead.Seek(clientAddrType == 4 ? 6 : 28, SeekOrigin.Current);
+                                }
+
+                                br.ReadUInt64();
+                                br.ReadUInt64();
+                            }
+                            else if (innerPacketId == (byte)MessageIdentifiers.IdConnectedPing)
+                            {
+                                ulong timestampClient = br.ReadUInt64();
+
+                                byte[] responsePacket = PacketEncapsulater.FrameSetPacketGenerate(
                                     ConnectedPong.SendConnectedPong(timestampClient), 2, 0x40);
-                            
-                            _listener.Send(responsePacket, responsePacket.Length, _clientEndPoint);
+
+                                _listener.Send(responsePacket, responsePacket.Length, _clientEndPoint);
+                            }
+                            else if (innerPacketId == 0xFE)
+                            {
+                                if (!_compressionEnabled)
+                                {
+                                    int currentOffset = (int)msRead.Position;
+
+                                    var (length, nextOffset) = VarInts.ReadUnsignedInt(datagram, currentOffset);
+                                    var (packetId, nextOffset2) = VarInts.ReadUnsignedInt(datagram, nextOffset);
+
+                                    if (packetId == 193)
+                                    {
+                                        int dataSize = length - (nextOffset2 - nextOffset);
+
+                                        Console.WriteLine($"[DEBUG] length={length}, packetId={packetId}, dataSize={dataSize}, pos={nextOffset2}");
+
+                                        NetworkSettings packet = new NetworkSettings(
+                                            datagram.AsMemory(nextOffset2, dataSize),
+                                            PacketHandler.Handled
+                                        );
+
+                                        packet.Decode();
+
+                                        if (packet.IsVersionValid)
+                                        {
+                                            byte[] innerPayload = packet.Encode();
+
+                                            byte[] tempVarInt = new byte[5];
+                                            int lengthVarIntSize = VarInts.WriteUnsignedInt(tempVarInt, innerPayload.Length);
+
+                                            byte[] minecraftBatch = new byte[1 + lengthVarIntSize + innerPayload.Length];
+                                            minecraftBatch[0] = 0xFE;
+                                            Array.Copy(tempVarInt, 0, minecraftBatch, 1, lengthVarIntSize);
+                                            Array.Copy(innerPayload, 0, minecraftBatch, 1 + lengthVarIntSize, innerPayload.Length);
+
+                                            byte[] responsePacket = PacketEncapsulater.FrameSetPacketGenerate(minecraftBatch, 0, 0x40);
+                                            _listener.Send(responsePacket, responsePacket.Length, _clientEndPoint);
+
+                                            Console.WriteLine("Compression enabled");
+                                            _compressionEnabled = true;
+                                        }
+                                    }
+
+                                    msRead.Position = (int)frameEndPosition; 
+                                }
+                            }
+                            msRead.Position = frameEndPosition;
                         }
                     }
                 }

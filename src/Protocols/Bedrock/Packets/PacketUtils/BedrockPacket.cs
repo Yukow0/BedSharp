@@ -30,5 +30,5 @@ public abstract class BedrockPacket : IBedrockPacket
     
     public abstract void Decode();
     
-    public abstract void Encode();
+    public abstract byte[] Encode();
 }

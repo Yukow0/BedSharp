@@ -17,10 +17,7 @@ public class LoginPacket : BedrockPacket
         
     }
 
-    public PacketHandler handle(BedrockPacketHandler handler)
-    {
-        return handler.handle(this);
-    }
+    
 
     public override IBedrockPacket Clone()
     {
@@ -39,7 +36,7 @@ public class LoginPacket : BedrockPacket
         throw new NotImplementedException();
     }
 
-    public override void Encode()
+    public override byte[] Encode()
     {
         throw new NotImplementedException();
     }

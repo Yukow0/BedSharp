@@ -10,7 +10,7 @@ class Program
 {
     public static void Main(string[] args)
     {
-        Engine engine = new Engine(19132, "BedSharp", 20);
+        Engine engine = new Engine();
         engine.Start();
     }
 }

@@ -26,15 +26,17 @@ public class Engine
     private IPEndPoint _clientEndPoint;
 
 
-    public Engine(int port, string motd, int maxPlayers)
+    public Engine()
     {
-        _port = port;
-        _motd = motd;
-        _maxPlayers = maxPlayers;
+        Dictionary<string, string> config = Config.LoadFile().Result;
+        _port = config.TryGetValue("server-port", out string portValue) ? int.Parse(portValue) : 19132;
+        Console.WriteLine($"Server port {_port}");
+        _motd = config.TryGetValue("motd", out string motd) ? motd : "";
+        _maxPlayers = config.TryGetValue("max-players", out string maxPlayers) ? int.Parse(maxPlayers) : 20;
         _magic = ServerInfo.Magic;
         _listener = new UdpClient(AddressFamily.InterNetworkV6);
         _listener.Client.DualMode = true;
-        IPEndPoint localEndPoint = new IPEndPoint(IPAddress.IPv6Any, port);
+        IPEndPoint localEndPoint = new IPEndPoint(IPAddress.IPv6Any, _port);
         _listener.Client.Bind(localEndPoint);
         _serverId = ((ulong)_rnd.Next() << 32) | (uint)_rnd.Next();
         _serverData = ServerInfo.GetServerData(_serverId, _motd, _maxPlayers);

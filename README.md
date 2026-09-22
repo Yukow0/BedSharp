@@ -4,303 +4,152 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-blueviolet)](https://dotnet.microsoft.com/download/dotnet/10.0)
 
-**BedSharp** is an experimental Minecraft Bedrock Edition server written entirely in C#.
+*BedSharp* is an experimental Minecraft Bedrock Edition server implementation written entirely in C#.  
+It's a from-scratch rewrite that's still in its very early stages, so don't expect a playable server yet.
 
-The project is focused on providing a native, community-driven Bedrock server implementation targeting modern Bedrock versions.
+## Why I restarted the project
 
----
+I restarted BedSharp from scratch for a few reasons.
 
-## Why the project was restarted
+### .NET 9 was STS (Standard Term Support)
 
-BedSharp was restarted from scratch for several reasons.
+The previous version was built on .NET 9.0, which is a standard term support release with a pretty short support window.  
+I wanted the project to stay supported even if I decide to stop working on it someday, so BedSharp now targets **.NET 10**, an LTS (Long Term Support) release.
 
-### 1. Moving to .NET 10
+### A cleaner structure
 
-The previous version targeted .NET 9.0, which is a Standard Term Support (STS) release.
+I have a lot of respect for the work done by **MiNET**, but the project got abandoned and was later taken over by a maintainer I'm not really trusting.  
+The C# community deserves a Bedrock server implementation it can build on, and I want BedSharp to be that.  
+To keep things sustainable and reusable, the project is split into separate pieces: **BedSharp** (the server itself, this repository), **NetherNet** (the transport library) and **MCPE Protocol** (the packet protocol library).  
+That way the protocol libraries stay useful to anyone who wants to build their own engine.
 
-The new version targets **.NET 10**, an LTS release, providing a longer-lived foundation for the project.
+### RakNet is gone
 
----
+Mojang switched Bedrock networking away from RakNet on recent versions, so the old transport isn't viable anymore.  
+BedSharp had to move to **NetherNet** instead, more on that below.  
+It was another good reason to start over.
 
-### 2. A cleaner project structure
+### You
 
-BedSharp is focused exclusively on the **server implementation**.
+If you want to build your own engine, I'm all for it.  
+I'll do what I can to help you, and shipping NetherNet and the MCPE protocol as standalone libraries is the first step.
 
-The protocol implementations are maintained as separate repositories:
+## The plan
 
-* **BedSharp** — Minecraft Bedrock server
-* **NetherNet** — NetherNet transport implementation
-* **MCPE Protocol** — Minecraft Bedrock packet protocol implementation
+The project is split into three independent pieces:  
+**BedSharp** depends on the two libraries and turns them into an actual server.  
+**NetherNet** is a standalone library for the NetherNet transport.  
+**MCPE Protocol** is a standalone library for the Bedrock packet protocol.  
 
-This keeps the server independent from the implementation details of the networking and packet layers.
+Right now only **BedSharp** exists, and it's a fresh scaffold.  
+The two libraries will be extracted as the protocol work comes back.
 
-The two protocol projects are intended to be reusable by other developers and projects as well.
+## NetherNet
 
----
+Mojang switched the protocol from RakNet to NetherNet.  
+NetherNet uses WebRTC to establish the connection between client and server, plus a web socket for the Xbox authentication.
 
-### 3. The shift from RakNet to NetherNet
+It's a bit hard to explain briefly, so I recommend reading the [NetherNet documentation](https://github.com/df-mc/nethernet-spec).  
+It's not that detailed, but it's a good starting point.
 
-Traditional Minecraft Bedrock networking was based on **RakNet**.
+## Status
 
-Recent Bedrock versions have moved to **NetherNet**. For the versions targeted by BedSharp, using RakNet as the transport is no longer a viable solution. Selecting RakNet on the affected server versions can cause the server to crash.
+*Project state:* fresh start, scaffold only. No protocol work yet.
 
-BedSharp therefore targets NetherNet directly rather than attempting to maintain a RakNet-based transport.
+**Implemented:**
 
-The NetherNet implementation is developed independently from BedSharp.
+* .NET 10 project scaffold (`Program.cs` + project file)
 
----
+**Not implemented:**
 
-## Project Structure
+* NetherNet transport (separate library, planned)
+* MCPE/Bedrock protocol library (planned)
+* Client connection and login handshake
+* World storage, chunk streaming, entities, physics, gameplay
+* Just about everything else
 
-BedSharp itself contains the server implementation.
+The project is **not** a usable Minecraft server yet.
 
-The overall project ecosystem is divided into three repositories:
+## Requirements
 
-```text
-┌─────────────────────┐
-│      BedSharp       │
-│   Server / Gameplay │
-└──────────┬──────────┘
-           │
-           ├──────────────────────┐
-           │                      │
-           ▼                      ▼
-┌─────────────────────┐  ┌─────────────────────┐
-│     MCPE Protocol   │  │      NetherNet      │
-│   Packet Protocol   │  │   Network Transport │
-└─────────────────────┘  └─────────────────────┘
-```
+* .NET **10.0** SDK
+* A Minecraft Bedrock client for testing (matching your target protocol version)
 
-### BedSharp
+## Quickstart
 
-Responsible for the actual Minecraft server:
-
-* Server lifecycle
-* Player management
-* World management
-* Chunks
-* Entities
-* Gameplay
-* Commands
-* Configuration
-* Persistence
-* Future server extensions
-
-### MCPE Protocol
-
-Separate repository responsible for the Minecraft Bedrock packet protocol.
-
-### NetherNet
-
-Separate repository responsible for the NetherNet transport.
-
----
-
-# NetherNet
-
-NetherNet is the newer networking stack used by recent versions of Minecraft Bedrock Edition.
-
-It replaces the traditional RakNet transport for the versions targeted by BedSharp.
-
-NetherNet uses **WebRTC** for the gameplay connection and involves additional signalling/authentication mechanisms during connection establishment.
-
-The available specification is limited, so parts of the implementation require protocol analysis and reverse engineering.
-
-See the [NetherNet specification](https://github.com/df-mc/nethernet-spec) for the currently available documentation.
-
-The NetherNet implementation itself is **not part of this repository**.
-
----
-
-# Status
-
-**Project state:** Fresh start — server scaffold only.
-
-### Implemented
-
-* .NET 10 project scaffold
-* Basic BedSharp server project structure
-* Initial `Program.cs`
-
-### Not implemented
-
-* NetherNet integration
-* MCPE protocol integration
-* Client connection
-* Authentication
-* Login/join handshake
-* Player/session management
-* World storage
-* Chunk streaming
-* Entities
-* Physics
-* Gameplay
-* Commands
-* Persistence
-* Almost everything else
-
-The current project is **not yet a usable Minecraft server**.
-
----
-
-# Requirements
-
-* [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-* Minecraft Bedrock Edition for testing
-* A matching Bedrock protocol version
-
-For protocol development and debugging, additional tools such as Wireshark and Bedrock Dedicated Server may be required.
-
----
-
-# Quickstart
-
-## Clone
+### Clone
 
 ```sh
 git clone https://github.com/Yukow0/BedSharp.git
 cd BedSharp
 ```
 
-## Build
+### Build
 
 ```sh
 dotnet build
 ```
 
-## Run
+### Run
 
 ```sh
-dotnet run
+dotnet run --project BedSharp.Core
 ```
 
-> **Note:** BedSharp is currently only a scaffold and does not accept Minecraft connections yet.
+> **Note:** right now the server only prints "Hello, World!". It doesn't accept connections yet.
 
----
+## Repository layout
 
-# Repository Layout
-
-```text
+```
 /
-├── Program.cs
-├── BedSharp.csproj
-└── ...
+  Program.cs
+  BedSharp.Core.csproj
+  LICENSE
+  README.md
 ```
 
-The protocol implementations are intentionally **not included in this repository**.
+The protocol implementations live outside this repository when they come back.
 
-They are maintained separately as:
+## Development notes
 
-* NetherNet
-* MCPE Protocol
+* Protocol code should stay explicit and easy to test.
+* Prefer small, focused tests for parsing and serialization.
+* Keep public APIs minimal until the protocols stabilize.
+* Treat all network data as untrusted input.
 
----
+## Roadmap (short-term)
 
-# Development Principles
+1. Restore the NetherNet transport behind a clean interface.
+2. Restore the MCPE protocol as a separate library.
+3. Reconnect the client login handshake.
+4. Add a minimal player/session manager.
+5. Start chunk streaming and basic entity stubs.
 
-### Explicit protocol handling
+## How you can help
 
-Protocol-related code should remain explicit and easy to debug.
+* Test different Bedrock versions and report issues (logs + client version help a lot).
+* Add parsing/serialization tests.
+* Implement missing packet handlers.
+* Help design a minimal test suite for a full client login.
 
-### Defensive parsing
+## Security
 
-Network data should always be treated as untrusted input.
+* **Do not expose an unfinished server to untrusted networks.** The networking layers are under active development and malformed-packet handling isn't hardened yet.
+* For security issues, report privately or open an issue marked **security**.
 
-### Small, focused tests
-
-Packet serialization, deserialization and server behaviour should be covered by focused tests whenever possible.
-
-### Minimal abstractions
-
-Avoid introducing abstractions before their purpose is clear.
-
-### Version awareness
-
-Minecraft Bedrock changes frequently. Version-specific behaviour should be explicit rather than hidden behind assumptions that different protocol versions are compatible.
-
----
-
-# Roadmap
-
-The short-term roadmap is:
-
-1. Integrate the NetherNet library.
-2. Integrate the MCPE protocol library.
-3. Establish a working client connection.
-4. Implement the Bedrock login/join handshake.
-5. Implement a minimal player/session manager.
-6. Send the first valid play packets to a connected client.
-7. Begin chunk streaming.
-8. Add basic entity support.
-9. Start implementing actual gameplay systems.
-
----
-
-# How You Can Help
-
-The project is still in an early stage.
-
-Useful contributions include:
-
-* Testing BedSharp with different Bedrock versions
-* Reporting connection and protocol issues
-* Server implementation
-* Packet handling
-* Serialization/deserialization tests
-* World/chunk implementation
-* Entity implementation
-* Gameplay systems
-
-For protocol-related issues, please include:
-
-```text
-Minecraft version:
-BDS version:
-BedSharp commit:
-Operating system:
-Logs:
-Packet/protocol area:
-Steps to reproduce:
-Wireshark capture:
-```
-
----
-
-# Security
-
-BedSharp is experimental software.
-
-**Do not expose an unfinished BedSharp server to untrusted networks.**
-
-The server and its networking dependencies are still under active development and may contain vulnerabilities or insufficient malformed-packet handling.
-
-For security issues, please report them privately when possible.
-
----
-
-# Contributing
+## Contributing
 
 1. Fork the repository.
-2. Create a branch:
+2. Create a branch: `git checkout -b feature/short-description`
+3. Make your changes and add tests when possible.
+4. Verify the project builds.
+5. Open a pull request with a clear description.
 
-```sh
-git checkout -b feature/short-description
-```
+## License
 
-3. Make your changes.
-4. Add tests where appropriate.
-5. Verify that the project builds.
-6. Open a pull request with a clear description of the changes.
+MIT, see [LICENSE](LICENSE).
 
----
-
-# License
-
-MIT — see [LICENSE](LICENSE).
-
----
-
-# Thanks
+## Thanks
 
 Thanks to the projects and communities that made researching Minecraft Bedrock possible:
 
@@ -308,10 +157,6 @@ Thanks to the projects and communities that made researching Minecraft Bedrock p
 * [bedrock.dev](https://bedrock.dev/)
 * [CloudBurst](https://github.com/CloudburstMC)
 
----
+## Contact
 
-# Contact
-
-Maintainer: **Yukow0**
-
-[GitHub](https://github.com/Yukow0)
+Maintainer: **Yukow0** — [GitHub](https://github.com/Yukow0)
